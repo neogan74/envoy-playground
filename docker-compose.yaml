@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  service-uuid:
+    build: ./services/service-uuid
+    ports:
+      - "8080:8080"
+
+  service-health:
+    build: ./services/service-health
+    ports:
+      - "8081:8081"
+
+  service-time:
+    build: ./services/service-time
+    ports:
+      - "8082:8082"
+

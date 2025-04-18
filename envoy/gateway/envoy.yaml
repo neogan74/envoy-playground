@@ -1,0 +1,68 @@
+static_resources:
+  listeners:
+  - name: listener_http
+    address:
+      socket_address: { address: 0.0.0.0, port_value: 10000 }
+    filter_chains:
+    - filters:
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          stat_prefix: ingress_http
+          route_config:
+            name: local_route
+            virtual_hosts:
+            - name: backend_services
+              domains: ["*"]
+              routes:
+              - match: { prefix: "/uuid" }
+                route: { cluster: service_uuid_cluster }
+              - match: { prefix: "/health" }
+                route: { cluster: service_health_cluster }
+              - match: { prefix: "/time" }
+                route: { cluster: service_time_cluster }
+          http_filters:
+          - name: envoy.filters.http.router
+
+  clusters:
+  - name: service_uuid_cluster
+    connect_timeout: 1s
+    type: strict_dns
+    lb_policy: round_robin
+    load_assignment:
+      cluster_name: service_uuid_cluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: service-uuid
+                port_value: 8080
+
+  - name: service_health_cluster
+    connect_timeout: 1s
+    type: strict_dns
+    lb_policy: round_robin
+    load_assignment:
+      cluster_name: service_health_cluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: service-health
+                port_value: 8081
+
+  - name: service_time_cluster
+    connect_timeout: 1s
+    type: strict_dns
+    lb_policy: round_robin
+    load_assignment:
+      cluster_name: service_time_cluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: service-time
+                port_value: 8082

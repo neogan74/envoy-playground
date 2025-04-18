@@ -1,6 +1,16 @@
 version: "3.9"
 
 services:
+  envoy-gateway:
+    image: envoyproxy/envoy:v1.29-latest
+    volumes:
+      - ./envoy/gateway/envoy.yaml:/etc/envoy/envoy.yaml
+    ports:
+      - "10000:10000"
+    depends_on:
+      - service-uuid
+      - service-health
+      - service-time
   service-uuid:
     build: ./services/service-uuid
     ports:

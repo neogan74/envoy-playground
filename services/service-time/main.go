@@ -18,4 +18,3 @@ func main() {
 	log.Println("Service C running on :8082")
 	log.Fatal(http.ListenAndServe(":8082", nil))
 }
-

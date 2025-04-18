@@ -6,23 +6,68 @@ services:
     volumes:
       - ./envoy/gateway/envoy.yaml:/etc/envoy/envoy.yaml
     ports:
-      - "10000:10000"
+      - "9000:9000"
     depends_on:
       - service-uuid
       - service-health
       - service-time
+    networks:
+      - envoy_net
   service-uuid:
     build: ./services/service-uuid
     ports:
       - "8080:8080"
+    networks:
+      - envoy_net
+
+  service-uuid-sidecar:
+    image: envoyproxy/envoy:v1.29-latest
+    volumes:
+      - ./envoy/sidecar/service-uuid/envoy.yaml:/etc/envoy/envoy.yaml
+    networks:
+      - envoy_net
+    depends_on:
+      - service-uuid
+    ports:
+      - "18080:18080"
 
   service-health:
     build: ./services/service-health
     ports:
       - "8081:8081"
+    networks:
+      - envoy_net
+
+  service-health-sidecar:
+    image: envoyproxy/envoy:v1.29-latest
+    volumes:
+      - ./envoy/sidecar/service-health/envoy.yaml:/etc/envoy/envoy.yaml
+    networks:
+      - envoy_net
+    depends_on:
+      - service-health
+    ports:
+      - "18081:18081"
 
   service-time:
     build: ./services/service-time
     ports:
       - "8082:8082"
+    networks:
+      - envoy_net
+
+  service-time-sidecar:
+    image: envoyproxy/envoy:v1.29-latest
+    volumes:
+      - ./envoy/sidecar/service-time/envoy.yaml:/etc/envoy/envoy.yaml
+    networks:
+      - envoy_net
+    depends_on:
+      - service-time
+    ports:
+      - "18082:18082"
+
+networks:
+  envoy_net:
+    driver: bridge
 

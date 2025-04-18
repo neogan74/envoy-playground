@@ -18,7 +18,13 @@ static_resources:
               domains: ["*"]
               routes:
               - match: { prefix: "/" }
-                route: { cluster: local_service }
+                route: 
+                  cluster: local_service 
+                  timeout: 2s
+                  retry_policy:
+                    retry_on: "5xx"
+                    num_retries: 2
+                    per_try_timeout: 1s
           http_filters:
           - name: envoy.filters.http.router
             typed_config:
@@ -28,6 +34,13 @@ static_resources:
     connect_timeout: 1s
     type: strict_dns
     lb_policy: round_robin
+    circuit_breakers:
+      thresholds:
+      - priority: DEFAULT
+        max_connections: 10
+        max_pending_requests: 5
+        max_requests: 20
+        max_retries: 2
     load_assignment:
       cluster_name: local_service
       endpoints:

@@ -1,11 +1,26 @@
+admin:
+  access_log_path: /dev/null
+  address:
+    socket_address: { address: 0.0.0.0, port_value: 9901 }
+
 static_resources:
   listeners:
   - name: listener_http
     address:
-      socket_address: { address: 0.0.0.0, port_value: 9000 }
+      socket_address: { address: 0.0.0.0, port_value: 10000 }
     filter_chains:
     - filters:
       - name: envoy.filters.network.http_connection_manager
+        tracing:
+          provider:
+            name: envoy.tracers.opentelemetry
+            typed_config:
+              "@type": type.googleapis.com/envoy.config.trace.v3.OpenTelemetryConfig
+              grpc_service:
+                envoy_grpc:
+                  cluster_name: jaeger
+                timeout: 0.25s
+              service_name: envoy-gateway
         typed_config:
           "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
           stat_prefix: ingress_http
@@ -68,3 +83,16 @@ static_resources:
               socket_address:
                 address: service-time
                 port_value: 8082
+  - name: jaeger
+    connect_timeout: 1s
+    type: strict_dns
+    lb_policy: round_robin
+    load_assignment:
+      cluster_name: jaeger
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: jaeger
+                port_value: 4317  # gRPC порт
